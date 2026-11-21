@@ -280,7 +280,17 @@ def create_memory():
             "SELECT matricula FROM users WHERE matricula = ?", (user_matricula,)
         ).fetchone()
         if not user:
-            return jsonify({"error": "El usuario no existe"}), 404
+            # Si el usuario se registró offline en la app, registrarlo automáticamente en el servidor
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO users (matricula, nombres, apellidos, password_hash, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (user_matricula, "gael", "velez", "offline_sync", datetime.now().isoformat()),
+            )
+            user = conn.execute(
+                "SELECT matricula FROM users WHERE matricula = ?", (user_matricula,)
+            ).fetchone()
 
         cursor = conn.execute(
             """
