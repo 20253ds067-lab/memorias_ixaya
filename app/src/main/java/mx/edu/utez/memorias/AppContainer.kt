@@ -6,6 +6,7 @@ import mx.edu.utez.memorias.data.local.UserPreferencesRepository
 import mx.edu.utez.memorias.data.remote.ApiService
 import mx.edu.utez.memorias.data.remote.RetrofitClient
 import mx.edu.utez.memorias.data.repository.AuthRepository
+import mx.edu.utez.memorias.data.repository.MemoryRepository
 
 class AppContainer(context: Context) {
     private val database = AppDatabase.getInstance(context)
@@ -15,6 +16,15 @@ class AppContainer(context: Context) {
     val authRepository = AuthRepository(
         apiService = apiService,
         userDao = database.userDao(),
+        preferencesRepository = userPreferencesRepository
+    )
+
+    val memoryRepository = MemoryRepository(
+        apiService = apiService,
+        memoryDao = database.memoryDao(),
+        userDao = database.userDao(),
+        likeDao = database.likeDao(),
+        editHistoryDao = database.editHistoryDao(),
         preferencesRepository = userPreferencesRepository
     )
 }

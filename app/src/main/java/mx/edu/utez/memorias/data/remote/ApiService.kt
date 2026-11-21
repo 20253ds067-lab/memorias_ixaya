@@ -33,6 +33,7 @@ interface ApiService {
     @PUT("api/memories/{id}")
     suspend fun updateMemory(
         @Path("id") memoryId: Int,
+        @Query("user_matricula") userMatricula: String,
         @Body request: UpdateMemoryRequest
     ): Response<MemoryDto>
 

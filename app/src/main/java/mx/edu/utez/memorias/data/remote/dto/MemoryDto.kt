@@ -18,6 +18,7 @@ data class MemoryDto(
 )
 
 data class UpdateMemoryRequest(
+    @SerializedName("user_matricula") val userMatricula: String,
     val titulo: String,
     val lugar: String,
     val latitud: Double,
