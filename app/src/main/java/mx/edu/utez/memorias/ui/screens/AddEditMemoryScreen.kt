@@ -1,7 +1,10 @@
 package mx.edu.utez.memorias.ui.screens
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -23,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -56,6 +60,28 @@ fun AddEditMemoryScreen(
     ) { success ->
         if (success && tempCameraFile != null && tempCameraFile!!.exists()) {
             viewModel.onImageSelected(tempCameraFile!!)
+        }
+    }
+
+    val launchCamera = {
+        try {
+            val file = File(context.cacheDir, "camera_${System.currentTimeMillis()}.jpg")
+            tempCameraFile = file
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            tempCameraImageUri = uri
+            cameraLauncher.launch(uri)
+        } catch (e: Exception) {
+            Toast.makeText(context, "Error al abrir la cámara: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            launchCamera()
+        } else {
+            Toast.makeText(context, "Se requiere permiso de cámara para tomar fotos", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -148,11 +174,16 @@ fun AddEditMemoryScreen(
             ) {
                 Button(
                     onClick = {
-                        val file = File(context.cacheDir, "camera_${System.currentTimeMillis()}.jpg")
-                        tempCameraFile = file
-                        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-                        tempCameraImageUri = uri
-                        cameraLauncher.launch(uri)
+                        val hasCameraPermission = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.CAMERA
+                        ) == PackageManager.PERMISSION_GRANTED
+
+                        if (hasCameraPermission) {
+                            launchCamera()
+                        } else {
+                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        }
                     },
                     modifier = Modifier.weight(1f)
                 ) {
