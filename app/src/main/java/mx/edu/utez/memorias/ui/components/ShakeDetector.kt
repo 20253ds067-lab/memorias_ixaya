@@ -29,9 +29,10 @@ class ShakeDetector(
 
         val gForce = sqrt((gX * gX + gY * gY + gZ * gZ).toDouble()).toFloat()
 
-        if (gForce > 2.5f || (sqrt((x*x + y*y + z*z).toDouble()).toFloat() - SensorManager.GRAVITY_EARTH) > threshold) {
+        // Sensible tanto para dispositivos físicos como para el emulador (Virtual sensors)
+        if (gForce > 1.4f || kotlin.math.abs(x) > 11.0f || kotlin.math.abs(y) > 11.0f) {
             val now = System.currentTimeMillis()
-            if (now - lastShakeTimestamp > 1500) {
+            if (now - lastShakeTimestamp > 1200) {
                 lastShakeTimestamp = now
                 onShake()
             }

@@ -8,5 +8,6 @@ data class PendingNotificationDto(
     @SerializedName("memory_titulo") val memoryTitulo: String,
     @SerializedName("liker_matricula") val likerMatricula: String,
     @SerializedName("liker_name") val likerName: String,
-    @SerializedName("created_at") val createdAt: String
+    @SerializedName("created_at") val createdAt: String,
+    val message: String? = null
 )

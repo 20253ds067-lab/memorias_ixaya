@@ -14,15 +14,20 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import mx.edu.utez.memorias.ui.components.BottomNavBar
 import mx.edu.utez.memorias.ui.components.MemoryCard
 import mx.edu.utez.memorias.ui.components.rememberShakeDetector
 import mx.edu.utez.memorias.ui.viewmodels.HomeViewModel
+import mx.edu.utez.memorias.workers.LikeNotificationWorker
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,10 +38,22 @@ fun HomeScreen(
     onLoggedOut: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    val checkNotifications = {
+        WorkManager.getInstance(context).enqueue(
+            OneTimeWorkRequestBuilder<LikeNotificationWorker>().build()
+        )
+    }
+
+    LaunchedEffect(Unit) {
+        checkNotifications()
+    }
 
     // Detector de agitación con acelerómetro
     rememberShakeDetector {
         viewModel.onShake()
+        checkNotifications()
     }
 
     Scaffold(
@@ -53,7 +70,10 @@ fun HomeScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = viewModel::refresh) {
+                    IconButton(onClick = {
+                        viewModel.refresh()
+                        checkNotifications()
+                    }) {
                         Icon(Icons.Default.Refresh, contentDescription = "Recargar")
                     }
                     IconButton(onClick = {

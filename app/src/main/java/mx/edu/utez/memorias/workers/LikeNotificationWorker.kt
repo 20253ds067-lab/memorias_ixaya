@@ -32,7 +32,7 @@ class LikeNotificationWorker(
                     showNativeNotification(
                         id = notif.id,
                         title = "¡Nuevo Like en ${notif.memoryTitulo}!",
-                        body = "${notif.likerName} (${notif.likerMatricula}) reaccionó a tu recuerdo."
+                        body = notif.message ?: "${notif.likerName} (${notif.likerMatricula}) reaccionó a tu recuerdo."
                     )
                 }
             }
@@ -47,9 +47,10 @@ class LikeNotificationWorker(
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 "Reacciones y Likes",
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Notificaciones cuando alguien da like a tus recuerdos"
+                enableVibration(true)
             }
             val manager = applicationContext.getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
@@ -69,7 +70,8 @@ class LikeNotificationWorker(
             .setSmallIcon(android.R.drawable.btn_star_big_on)
             .setContentTitle(title)
             .setContentText(body)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setAutoCancel(true)
             .build()
         NotificationManagerCompat.from(applicationContext).notify(id, notification)

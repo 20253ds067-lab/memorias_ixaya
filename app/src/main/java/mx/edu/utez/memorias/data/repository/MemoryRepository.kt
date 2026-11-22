@@ -218,6 +218,22 @@ class MemoryRepository(
         )
         memoryDao.updateMemory(updated)
 
+        // Registrar cambio inmediatamente en historial local
+        val changes = mutableListOf<String>()
+        if (titulo != memory.titulo) changes.add("Título: '$titulo'")
+        if (lugar != memory.lugar) changes.add("Lugar: '$lugar'")
+        if (descripcion != memory.descripcion) changes.add("Descripción modificada")
+        val summary = if (changes.isNotEmpty()) changes.joinToString(" | ") else "Detalles actualizados"
+
+        val now = Instant.now().toString()
+        editHistoryDao.insertHistory(
+            EditHistoryEntity(
+                memoryId = memoryId,
+                editedAt = now,
+                changeSummary = summary
+            )
+        )
+
         try {
             val matricula = userMatricula ?: preferencesRepository.userSessionFlow.first().matricula
             val remoteId = memory.remoteId ?: memoryId
@@ -231,7 +247,7 @@ class MemoryRepository(
                     latitud = latitud,
                     longitud = longitud,
                     descripcion = descripcion,
-                    changeSummary = "Editado desde Android"
+                    changeSummary = summary
                 )
             )
             if (response.isSuccessful && response.body() != null) {
@@ -243,6 +259,7 @@ class MemoryRepository(
                         isSynced = true
                     )
                 )
+                refreshEditHistory(memoryId)
             }
         } catch (_: Exception) { }
 

@@ -482,14 +482,12 @@ def toggle_like(memory_id):
             conn.execute("DELETE FROM likes WHERE id = ?", (existing_like["id"],))
             action = "unliked"
         else:
-            # Si el dueño se da autolike, lo marcamos ya notificado para no enviarse notificación a sí mismo
-            already_notified = 1 if memory["user_matricula"] == liker_matricula else 0
             conn.execute(
                 """
                 INSERT INTO likes (memory_id, liker_matricula, created_at, notified)
-                VALUES (?, ?, ?, ?)
+                VALUES (?, ?, ?, 0)
                 """,
-                (memory_id, liker_matricula, datetime.now().isoformat(), already_notified),
+                (memory_id, liker_matricula, datetime.now().isoformat()),
             )
             action = "liked"
 
@@ -523,10 +521,10 @@ def get_pending_like_notifications(matricula):
                    l.created_at,
                    m.id as memory_id,
                    m.titulo as memory_titulo,
-                   u.nombres || ' ' || u.apellidos as liker_name
+                   COALESCE(u.nombres || ' ' || u.apellidos, l.liker_matricula) as liker_name
             FROM likes l
             JOIN memories m ON l.memory_id = m.id
-            JOIN users u ON l.liker_matricula = u.matricula
+            LEFT JOIN users u ON l.liker_matricula = u.matricula
             WHERE m.user_matricula = ?
               AND l.notified = 0
               AND m.is_deleted = 0
