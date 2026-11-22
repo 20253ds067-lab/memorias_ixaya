@@ -75,7 +75,7 @@ fun AppNavGraph(appContainer: AppContainer) {
                     navController.navigate(AppRoutes.AddEditMemory.createRoute())
                 },
                 onNavigateToDetail = { memoryId ->
-                    navController.navigate(AppRoutes.AddEditMemory.createRoute(memoryId))
+                    navController.navigate(AppRoutes.MemoryDetail.createRoute(memoryId))
                 },
                 onLoggedOut = {
                     navController.navigate(AppRoutes.Login.route) {
